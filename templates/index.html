@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador QR Institucional</title>
+    <link rel="icon" type="image/png" href="//caritaslima.org.pe/wp-content/uploads/2024/03/LOGO-CARITAS-FAV.png">
+    <link href="https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    
+    <div class="background-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <main class="container">
+        <header class="header">
+            <div class="logo-container">
+                <img src="https://caritaslima.org.pe/wp-content/uploads/elementor/thumbs/LOGO-WEB-qosb2f2zlbbuh9ojou4l28j230mblduimm7dymyjbi.png" alt="Logo Institucional" id="header-logo"
+                    onerror="this.style.display='none'">
+            </div>
+            <h1>Generador de Código QR</h1>
+            <p>Herramienta interna para la generación de códigos QR institucionales con diseño fluido profesional.</p>
+        </header>
+
+        <section class="card glassmorphism">
+            <form id="qr-form" class="form-layout">
+                <div class="input-group">
+                    <label for="url">URL o Texto del QR</label>
+                    <input type="text" id="url" name="url" placeholder="https://ejemplo.com/formulario" required
+                        autocomplete="off">
+                </div>
+
+                <div class="input-group">
+                    <label for="logo">Logo nuevo (Opcional)</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="logo" name="logo" accept="image/*" class="file-input">
+                        <div class="file-input-custom">
+                            <span id="file-name">Seleccionar archivo...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" id="generate-btn">
+                    <span class="btn-text">👉 Generar QR</span>
+                    <div class="spinner hidden" id="loading-spinner"></div>
+                </button>
+            </form>
+
+            <div class="result-container hidden" id="result-container">
+                <h3>Código Generado Exitosamente</h3>
+                <div class="qr-preview">
+                    <img id="qr-image" src="" alt="Código QR Generado">
+                </div>
+                <div class="actions">
+                    <button id="download-btn" class="btn-secondary">Descargar QR (PNG)</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

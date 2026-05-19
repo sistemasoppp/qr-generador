@@ -1,0 +1,28 @@
+# Entorno virtual
+venv/
+.venv/
+ENV/
+env/
+
+# Caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de configuración de editores/IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Archivos temporales de Vercel
+.vercel/
+
+# Imágenes generadas localmente (manteniendo logo.png y static/logo.png)
+qr_caritas_estilo_exacto.png
+qr_fluido_profesional.png
+*.log
