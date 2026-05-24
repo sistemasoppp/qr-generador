@@ -3,11 +3,36 @@ import qrcode
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers.pil import RoundedModuleDrawer
 from qrcode.image.styles.colormasks import SolidFillColorMask
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, UnidentifiedImageError
+from werkzeug.exceptions import RequestEntityTooLarge
 import io
 import os
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2 MB max upload size
+ALLOWED_LOGO_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif', '.webp'}
+
+
+def allowed_file(filename):
+    _, extension = os.path.splitext(filename or '')
+    return extension.lower() in ALLOWED_LOGO_EXTENSIONS
+
+
+def validate_image_file(file_storage):
+    if not allowed_file(file_storage.filename):
+        return False
+
+    try:
+        file_storage.stream.seek(0)
+        image = Image.open(file_storage.stream)
+        image.verify()
+    except (UnidentifiedImageError, OSError):
+        return False
+    finally:
+        file_storage.stream.seek(0)
+
+    return True
+
 
 def generate_qr_image(data_url, logo_file=None):
     qr = qrcode.QRCode(
@@ -68,20 +93,43 @@ def generate_qr_image(data_url, logo_file=None):
 def index():
     return render_template('index.html')
 
+@app.after_request
+def set_secure_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['Referrer-Policy'] = 'no-referrer-when-downgrade'
+    response.headers['Strict-Transport-Security'] = 'max-age=63072000; includeSubDomains; preload'
+    return response
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_file_too_large(error):
+    return {"error": "El archivo es demasiado grande. Límite 2 MB."}, 413
+
+
 @app.route('/generar', methods=['POST'])
 def generar():
-    url = request.form.get('url', '')
-    
+    url = request.form.get('url', '').strip()
     if not url:
         return {"error": "URL is required"}, 400
 
-    logo_file = request.files.get('logo')
+    if len(url) > 2048:
+        return {"error": "URL demasiado larga."}, 400
+
+    logo = request.files.get('logo')
+    logo_file = None
+
+    if logo and logo.filename:
+        if not validate_image_file(logo):
+            return {"error": "Tipo de archivo de logo no permitido o inválido."}, 400
+        logo_file = logo.stream
 
     try:
         img_io = generate_qr_image(url, logo_file)
         return send_file(img_io, mimetype='image/png', as_attachment=False, download_name='qr_institucional.png')
     except Exception as e:
-        return {"error": str(e)}, 500
+        return {"error": "Error interno al generar el código QR."}, 500
+
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
